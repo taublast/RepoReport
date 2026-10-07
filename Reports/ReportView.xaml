@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<draw:SkiaLayout
+    x:Class="RepoReport.Reports.ReportView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:draw="http://schemas.appomobi.com/drawnUi/2023/draw"
+    xmlns:local="clr-namespace:RepoReport.Reports"
+    xmlns:models="clr-namespace:RepoReport.Models"
+    xmlns:vm="clr-namespace:RepoReport.ViewModels"
+    x:DataType="vm:ReportViewModel"
+    Type="Column"
+    Padding="48,0,48,40"
+    Spacing="28"
+    BackgroundColor="White"
+    HorizontalOptions="Fill">
+
+    <!--
+        No UseCache anywhere inside: caches would turn text and shapes into bitmaps inside the PDF.
+        Padding.Top stays 0 so page splitting sees the rows exactly where they are drawn.
+    -->
+
+    <!--  Header: owner avatar, name, description  -->
+    <draw:SkiaLayout
+        Margin="0,48,0,0"
+        Type="Row"
+        Spacing="24"
+        HorizontalOptions="Fill">
+
+        <draw:SkiaShape
+            Type="Circle"
+            WidthRequest="96"
+            HeightRequest="96"
+            BackgroundColor="#EEF1F6"
+            VerticalOptions="Start">
+            <draw:SkiaImage
+                Aspect="AspectCover"
+                Error="Image_OnError"
+                Source="{Binding OwnerAvatarUrl}"
+                Success="Image_OnSuccess"
+                HorizontalOptions="Fill"
+                VerticalOptions="Fill" />
+        </draw:SkiaShape>
+
+        <draw:SkiaLayout
+            Type="Column"
+            Spacing="6"
+            HorizontalOptions="Fill"
+            VerticalOptions="Center">
+            <draw:SkiaLabel
+                FontFamily="FontTextTitle"
+                FontSize="36"
+                Text="{Binding Title}"
+                TextColor="#0B0E14" />
+            <draw:SkiaLabel
+                FontFamily="FontText"
+                FontSize="17"
+                Text="{Binding Description}"
+                TextColor="#4A5468" />
+            <draw:SkiaLabel
+                FontFamily="FontText"
+                FontSize="13"
+                Text="{Binding Facts}"
+                TextColor="#8A94A6" />
+        </draw:SkiaLayout>
+    </draw:SkiaLayout>
+
+    <!--  Stats row  -->
+    <draw:SkiaLayout
+        Type="Grid"
+        ColumnDefinitions="*,*,*,*"
+        ColumnSpacing="16"
+        HorizontalOptions="Fill">
+        <local:StatTile
+            Grid.Column="0"
+            Accent="#F5A623"
+            Caption="Stars"
+            Value="{Binding StarsText}" />
+        <local:StatTile
+            Grid.Column="1"
+            Accent="#4C8DFF"
+            Caption="Forks"
+            Value="{Binding ForksText}" />
+        <local:StatTile
+            Grid.Column="2"
+            Accent="#E5484D"
+            Caption="Open issues"
+            Value="{Binding IssuesText}" />
+        <local:StatTile
+            Grid.Column="3"
+            Accent="#30A46C"
+            Caption="Watchers"
+            Value="{Binding WatchersText}" />
+    </draw:SkiaLayout>
+
+    <!--  Languages  -->
+    <draw:SkiaLayout
+        Type="Column"
+        Spacing="12"
+        HorizontalOptions="Fill">
+        <draw:SkiaLabel
+            FontFamily="FontTextTitle"
+            FontSize="20"
+            Text="Languages"
+            TextColor="#0B0E14" />
+        <local:LanguageBar
+            HeightRequest="14"
+            Items="{Binding Languages}"
+            HorizontalOptions="Fill" />
+        <draw:SkiaLayout
+            Type="Wrap"
+            ItemsSource="{Binding Languages}"
+            RecyclingTemplate="Disabled"
+            Spacing="18"
+            HorizontalOptions="Fill">
+            <draw:SkiaLayout.ItemTemplate>
+                <DataTemplate x:DataType="models:LanguageShare">
+                    <draw:SkiaLayout
+                        Type="Row"
+                        Spacing="6"
+                        Margin="0,0,0,6">
+                        <draw:SkiaShape
+                            Type="Circle"
+                            WidthRequest="10"
+                            HeightRequest="10"
+                            BackgroundColor="{Binding Color}"
+                            VerticalOptions="Center" />
+                        <draw:SkiaLabel
+                            FontFamily="FontTextTitle"
+                            FontSize="13"
+                            Text="{Binding Name}"
+                            TextColor="#0B0E14"
+                            VerticalOptions="Center" />
+                        <draw:SkiaLabel
+                            FontFamily="FontText"
+                            FontSize="13"
+                            Text="{Binding Percent, StringFormat='{0:0.0}%'}"
+                            TextColor="#8A94A6"
+                            VerticalOptions="Center" />
+                    </draw:SkiaLayout>
+                </DataTemplate>
+            </draw:SkiaLayout.ItemTemplate>
+        </draw:SkiaLayout>
+    </draw:SkiaLayout>
+
+    <!--  Commit activity  -->
+    <draw:SkiaLayout
+        Type="Column"
+        Spacing="12"
+        HorizontalOptions="Fill">
+        <draw:SkiaLabel
+            FontFamily="FontTextTitle"
+            FontSize="20"
+            Text="Commits per week"
+            TextColor="#0B0E14" />
+        <draw:SkiaLabel
+            FontFamily="FontText"
+            FontSize="13"
+            Text="{Binding CommitsSummary}"
+            TextColor="#8A94A6" />
+        <local:BarChart
+            BarColor="#4C8DFF"
+            HeightRequest="180"
+            Values="{Binding WeeklyCommits}"
+            HorizontalOptions="Fill" />
+    </draw:SkiaLayout>
+
+    <!--  Contributors table. Every row is a child of a templated Column, so Pdf.SplitStackToPages can break pages between rows.  -->
+    <draw:SkiaLayout
+        Type="Column"
+        Spacing="0"
+        HorizontalOptions="Fill">
+        <draw:SkiaLabel
+            Margin="0,0,0,12"
+            FontFamily="FontTextTitle"
+            FontSize="20"
+            Text="{Binding ContributorsTitle}"
+            TextColor="#0B0E14" />
+
+        <draw:SkiaLayout
+            Type="Grid"
+            ColumnDefinitions="44,52,*,120,220"
+            HeightRequest="34"
+            HorizontalOptions="Fill"
+            BackgroundColor="#0B0E14">
+            <draw:SkiaLabel Grid.Column="0" Margin="12,0,0,0" FontFamily="FontTextTitle" FontSize="12" Text="#" TextColor="White" VerticalOptions="Center" />
+            <draw:SkiaLabel Grid.Column="2" FontFamily="FontTextTitle" FontSize="12" Text="Contributor" TextColor="White" VerticalOptions="Center" />
+            <draw:SkiaLabel Grid.Column="3" FontFamily="FontTextTitle" FontSize="12" Text="Commits" TextColor="White" HorizontalTextAlignment="End" HorizontalOptions="Fill" VerticalOptions="Center" />
+            <draw:SkiaLabel Grid.Column="4" Margin="24,0,12,0" FontFamily="FontTextTitle" FontSize="12" Text="Share of top" TextColor="White" VerticalOptions="Center" />
+        </draw:SkiaLayout>
+
+        <draw:SkiaLayout
+            Type="Column"
+            ItemsSource="{Binding Contributors}"
+            MeasureItemsStrategy="MeasureAll"
+            RecyclingTemplate="Disabled"
+            Spacing="0"
+            HorizontalOptions="Fill">
+            <draw:SkiaLayout.ItemTemplate>
+                <DataTemplate x:DataType="models:Contributor">
+                    <draw:SkiaLayout
+                        Type="Grid"
+                        ColumnDefinitions="44,52,*,120,220"
+                        HeightRequest="48"
+                        BackgroundColor="{Binding RowBackground}"
+                        HorizontalOptions="Fill">
+                        <draw:SkiaLabel
+                            Grid.Column="0"
+                            Margin="12,0,0,0"
+                            FontFamily="FontText"
+                            FontSize="13"
+                            Text="{Binding Rank}"
+                            TextColor="#8A94A6"
+                            VerticalOptions="Center" />
+                        <draw:SkiaShape
+                            Grid.Column="1"
+                            Type="Circle"
+                            WidthRequest="34"
+                            HeightRequest="34"
+                            BackgroundColor="#EEF1F6"
+                            HorizontalOptions="Start"
+                            VerticalOptions="Center">
+                            <draw:SkiaImage
+                                Aspect="AspectCover"
+                                Error="Image_OnError"
+                                Source="{Binding AvatarUrl}"
+                                Success="Image_OnSuccess"
+                                HorizontalOptions="Fill"
+                                VerticalOptions="Fill" />
+                        </draw:SkiaShape>
+                        <draw:SkiaLabel
+                            Grid.Column="2"
+                            FontFamily="FontTextTitle"
+                            FontSize="14"
+                            Text="{Binding Login}"
+                            TextColor="#0B0E14"
+                            VerticalOptions="Center" />
+                        <draw:SkiaLabel
+                            Grid.Column="3"
+                            FontFamily="FontText"
+                            FontSize="14"
+                            HorizontalTextAlignment="End"
+                            Text="{Binding Contributions}"
+                            TextColor="#0B0E14"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Center" />
+                        <draw:SkiaLayout
+                            Grid.Column="4"
+                            Margin="24,0,12,0"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Center"
+                            HeightRequest="10">
+                            <draw:SkiaShape
+                                Type="Rectangle"
+                                CornerRadius="5"
+                                HeightRequest="10"
+                                HorizontalFillRatio="{Binding Share}"
+                                BackgroundColor="#4C8DFF"
+                                HorizontalOptions="Fill" />
+                        </draw:SkiaLayout>
+                    </draw:SkiaLayout>
+                </DataTemplate>
+            </draw:SkiaLayout.ItemTemplate>
+        </draw:SkiaLayout>
+    </draw:SkiaLayout>
+
+    <!--  Footer  -->
+    <draw:SkiaLayout
+        Type="Row"
+        Spacing="8"
+        HorizontalOptions="Center">
+        <draw:SkiaSvg
+            Source="drawnui.svg"
+            TintColor="#8A94A6"
+            WidthRequest="16"
+            HeightRequest="16"
+            VerticalOptions="Center" />
+        <draw:SkiaLabel
+            FontFamily="FontText"
+            FontSize="12"
+            Text="{Binding Generated}"
+            TextColor="#8A94A6"
+            VerticalOptions="Center" />
+    </draw:SkiaLayout>
+
+</draw:SkiaLayout>
