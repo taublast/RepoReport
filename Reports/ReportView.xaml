@@ -9,19 +9,15 @@
     xmlns:vm="clr-namespace:RepoReport.ViewModels"
     x:DataType="vm:ReportViewModel"
     Type="Column"
-    Padding="48,0,48,40"
+    Padding="48,48,48,40"
     Spacing="28"
     BackgroundColor="White"
     HorizontalOptions="Fill">
 
-    <!--
-        No UseCache anywhere inside: caches would turn text and shapes into bitmaps inside the PDF.
-        Padding.Top stays 0 so page splitting sees the rows exactly where they are drawn.
-    -->
+    <!--  No UseCache anywhere inside: caches would turn text and shapes into bitmaps inside the PDF.  -->
 
     <!--  Header: owner avatar, name, description  -->
     <draw:SkiaLayout
-        Margin="0,48,0,0"
         Type="Row"
         Spacing="24"
         HorizontalOptions="Fill">

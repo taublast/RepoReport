@@ -28,7 +28,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DrawnUi.Maui" Version="1.10.6.22" />
+        <!-- local checkout until the next DrawnUi.Maui package: swap back to the PackageReference below -->
+        <ProjectReference Include="..\DrawnUi\src\Maui\DrawnUi\DrawnUi.Maui.csproj" />
+        <!--<PackageReference Include="DrawnUi.Maui" Version="1.10.6.22" />-->
         <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.80" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />

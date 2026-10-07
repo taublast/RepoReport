@@ -78,12 +78,12 @@ public class GitHubService
     /// </summary>
     public async Task<List<int>> GetCommitActivityAsync(string fullName, CancellationToken ct)
     {
-        for (var attempt = 0; attempt < 5; attempt++)
+        for (var attempt = 0; attempt < 8; attempt++)
         {
             using var response = await Http.GetAsync($"repos/{fullName}/stats/commit_activity", ct);
             if (response.StatusCode == System.Net.HttpStatusCode.Accepted)
             {
-                await Task.Delay(1500, ct);
+                await Task.Delay(2000, ct);
                 continue;
             }
             response.EnsureSuccessStatusCode();
