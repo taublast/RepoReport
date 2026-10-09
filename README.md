@@ -17,7 +17,7 @@ dotnet build -f net10.0-windows10.0.19041.0
 
 Then run from the IDE or `dotnet run`. Type `owner/repo`, tap **Load**, then **Export PDF** or **Export JPG**. On Windows and Mac the file opens in the default viewer, on Android and iOS the share sheet appears.
 
-Unauthenticated GitHub requests are limited to 60 per hour. Set a `GITHUB_TOKEN` environment variable to raise the limit.
+No setup and no account needed: the GitHub API answers unauthenticated requests, 60 per hour per address, enough for a demo.
 
 ## Where to look
 

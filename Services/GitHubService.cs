@@ -1,12 +1,10 @@
-using System.Net.Http.Headers;
 using System.Text.Json;
 using RepoReport.Models;
 
 namespace RepoReport.Services;
 
 /// <summary>
-/// Thin GitHub REST client. Unauthenticated calls are limited to 60 per hour,
-/// set the GITHUB_TOKEN environment variable to raise the limit.
+/// Thin GitHub REST client, unauthenticated: no setup, 60 requests per hour per address.
 /// </summary>
 public class GitHubService
 {
@@ -17,9 +15,6 @@ public class GitHubService
         var http = new HttpClient { BaseAddress = new Uri("https://api.github.com/") };
         http.DefaultRequestHeaders.UserAgent.ParseAdd("RepoReport-DrawnUI-Sample");
         http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
-        var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
-        if (!string.IsNullOrWhiteSpace(token))
-            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return http;
     }
 
@@ -101,7 +96,7 @@ public class GitHubService
         if (!response.IsSuccessStatusCode)
         {
             var remaining = response.Headers.TryGetValues("X-RateLimit-Remaining", out var v) ? v.FirstOrDefault() : null;
-            var hint = remaining == "0" ? " GitHub rate limit reached, set GITHUB_TOKEN." : "";
+            var hint = remaining == "0" ? " GitHub rate limit reached, try again in an hour." : "";
             throw new HttpRequestException($"{(int)response.StatusCode} {response.ReasonPhrase} for {url}.{hint}");
         }
         return JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
