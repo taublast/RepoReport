@@ -5,7 +5,7 @@ using RepoReport.Models;
 namespace RepoReport.Services;
 
 /// <summary>
-/// Thin GitHub REST client, unauthenticated: no setup, 60 requests per hour per address.
+/// Thin GitHub REST client. Unauthenticated by default, 60 requests per hour per address; a GITHUB_TOKEN environment variable raises that.
 /// </summary>
 public class GitHubService
 {
@@ -16,6 +16,12 @@ public class GitHubService
         var http = new HttpClient { BaseAddress = new Uri("https://api.github.com/") };
         http.DefaultRequestHeaders.UserAgent.ParseAdd("RepoReport-DrawnUI-Sample");
         http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+
+        // Optional: a GITHUB_TOKEN environment variable raises the limit from 60 to 5000 requests per hour.
+        // Server side only, never ship a token inside a browser app.
+        var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+        if (!string.IsNullOrWhiteSpace(token))
+            http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         return http;
     }
 
@@ -136,6 +142,6 @@ public class GitHubService
         var reset = response.Headers.TryGetValues("X-RateLimit-Reset", out var r) && long.TryParse(r.FirstOrDefault(), out var epoch)
             ? DateTimeOffset.FromUnixTimeSeconds(epoch).ToLocalTime().ToString("HH:mm")
             : "the next hour";
-        return $" GitHub rate limit reached (60 unauthenticated requests per hour), resets at {reset}.";
+        return $" GitHub rate limit reached (60 unauthenticated requests per hour, set GITHUB_TOKEN for more), resets at {reset}.";
     }
 }
