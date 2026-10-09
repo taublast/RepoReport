@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using RepoReport.Models;
 
@@ -81,7 +82,8 @@ public class GitHubService
                 await Task.Delay(2000, ct);
                 continue;
             }
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException($"{(int)response.StatusCode} {response.ReasonPhrase} for commit statistics.{RateLimitHint(response)}");
             using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
             if (doc.RootElement.ValueKind != JsonValueKind.Array)
                 break;
@@ -90,15 +92,50 @@ public class GitHubService
         return new List<int>();
     }
 
+    /// <summary>
+    /// Last successful answer per url with its ETag. A conditional request that GitHub answers with
+    /// 304 Not Modified does not count against the rate limit, so repeated loads of the same
+    /// repository cost nothing once they have been fetched once in this process.
+    /// </summary>
+    static readonly ConcurrentDictionary<string, (string ETag, string Body)> Cache = new();
+
     static async Task<JsonDocument> GetJsonAsync(string url, CancellationToken ct)
     {
-        using var response = await Http.GetAsync(url, ct);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        if (Cache.TryGetValue(url, out var cached) && !string.IsNullOrEmpty(cached.ETag))
+            request.Headers.TryAddWithoutValidation("If-None-Match", cached.ETag);
+
+        using var response = await Http.SendAsync(request, ct);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotModified && cached.Body != null)
+            return JsonDocument.Parse(cached.Body);
+
         if (!response.IsSuccessStatusCode)
         {
-            var remaining = response.Headers.TryGetValues("X-RateLimit-Remaining", out var v) ? v.FirstOrDefault() : null;
-            var hint = remaining == "0" ? " GitHub rate limit reached, try again in an hour." : "";
-            throw new HttpRequestException($"{(int)response.StatusCode} {response.ReasonPhrase} for {url}.{hint}");
+            if (cached.Body != null)
+                return JsonDocument.Parse(cached.Body); // stale beats nothing, e.g. when the limit is reached
+
+            throw new HttpRequestException($"{(int)response.StatusCode} {response.ReasonPhrase} for {url}.{RateLimitHint(response)}");
         }
-        return JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+
+        var body = await response.Content.ReadAsStringAsync(ct);
+        var etag = response.Headers.ETag?.Tag;
+        if (!string.IsNullOrEmpty(etag))
+            Cache[url] = (etag, body);
+        return JsonDocument.Parse(body);
+    }
+
+    /// <summary>
+    /// " GitHub rate limit reached, resets at HH:mm." when the answer says the hourly quota is used up, else empty.
+    /// </summary>
+    static string RateLimitHint(HttpResponseMessage response)
+    {
+        var remaining = response.Headers.TryGetValues("X-RateLimit-Remaining", out var v) ? v.FirstOrDefault() : null;
+        if (remaining != "0")
+            return "";
+        var reset = response.Headers.TryGetValues("X-RateLimit-Reset", out var r) && long.TryParse(r.FirstOrDefault(), out var epoch)
+            ? DateTimeOffset.FromUnixTimeSeconds(epoch).ToLocalTime().ToString("HH:mm")
+            : "the next hour";
+        return $" GitHub rate limit reached (60 unauthenticated requests per hour), resets at {reset}.";
     }
 }
