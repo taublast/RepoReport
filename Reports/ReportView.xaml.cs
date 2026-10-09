@@ -1,4 +1,3 @@
-using DrawnUi.Infrastructure.Models;
 using RepoReport.ViewModels;
 
 namespace RepoReport.Reports;
@@ -16,26 +15,40 @@ public interface IContentReadyAware
 /// </summary>
 public partial class ReportView : SkiaLayout, IContentReadyAware
 {
-    int _imagesDone;
-
     public ReportView()
     {
         InitializeComponent();
     }
 
     /// <summary>
-    /// True once every avatar reported Success or Error. The count of expected images comes from the view model.
+    /// True once every image of the report exists and has settled: a bitmap arrived, the load failed,
+    /// or nothing is loading anymore. State, not events, so a missed event can never hold the export.
     /// </summary>
-    public bool ContentIsLoaded =>
-        BindingContext is ReportViewModel vm && _imagesDone >= vm.ExpectedImages;
-
-    void Image_OnSuccess(object sender, ContentLoadedEventArgs e)
+    public bool ContentIsLoaded
     {
-        _imagesDone++;
+        get
+        {
+            if (BindingContext is not ReportViewModel vm)
+                return false;
+
+            var images = Descendants(this).OfType<SkiaImage>().ToList();
+            return images.Count >= vm.ExpectedImages
+                   && images.All(image => image.LoadedSource != null || image.HasError || !image.IsLoading);
+        }
     }
 
-    void Image_OnError(object sender, ContentLoadedEventArgs e)
+    static IEnumerable<SkiaControl> Descendants(SkiaControl control)
     {
-        _imagesDone++;
+        // a templated layout keeps its live cells in the adapter, not in Views
+        var children = control is SkiaLayout { IsTemplated: true } layout
+            ? layout.ChildrenFactory.GetCellsInUse()
+            : control.Views;
+
+        foreach (var child in children)
+        {
+            yield return child;
+            foreach (var deeper in Descendants(child))
+                yield return deeper;
+        }
     }
 }

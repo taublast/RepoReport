@@ -30,9 +30,7 @@
             VerticalOptions="Start">
             <draw:SkiaImage
                 Aspect="AspectCover"
-                Error="Image_OnError"
                 Source="{Binding OwnerAvatarUrl}"
-                Success="Image_OnSuccess"
                 HorizontalOptions="Fill"
                 VerticalOptions="Fill" />
         </draw:SkiaShape>
@@ -217,10 +215,8 @@
                             VerticalOptions="Center">
                             <draw:SkiaImage
                                 Aspect="AspectCover"
-                                Error="Image_OnError"
-                                Source="{Binding AvatarUrl}"
-                                Success="Image_OnSuccess"
-                                HorizontalOptions="Fill"
+                                                Source="{Binding AvatarUrl}"
+                                                HorizontalOptions="Fill"
                                 VerticalOptions="Fill" />
                         </draw:SkiaShape>
                         <draw:SkiaLabel

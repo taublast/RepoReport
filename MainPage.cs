@@ -41,6 +41,7 @@ public partial class MainPage : BasePageReloadable, IDisposable
         };
 
         Content = new Grid { Children = { _canvas } };
+
     }
 
     SkiaControl CreateContent()
