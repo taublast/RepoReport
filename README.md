@@ -25,9 +25,9 @@ dotnet build -f net10.0-maccatalyst
 
 Then run from the IDE or `dotnet run`. Type `owner/repo`, tap **Load**, then **Export PDF** or **Export JPG**. On Windows the file opens in the default viewer, on Mac, Android and iOS the share sheet appears (`Launcher.OpenAsync` does nothing on Mac Catalyst).
 
-On Windows and Mac a **Preview window** button opens the report at A4 width in a second window: edit `ReportView.xaml`, save, and XAML hot reload shows the change next to the app. On Mac the second window needs `UIApplicationSupportsMultipleScenes` in `Platforms/MacCatalyst/Info.plist`, already set here.
+On Windows a **Preview window** button opens the report at A4 width in a second window: edit `ReportView.xaml`, save, and XAML hot reload shows the change next to the app. Not on Mac yet: the second window needs `UIApplicationSupportsMultipleScenes` in `Info.plist`, and with that manifest the app comes up with an empty main window on MAUI 10.0.80 (open question).
 
-Verified on Windows. Mac, Android and iOS build but were not run yet; reports welcome.
+Verified on Windows and Mac Catalyst (load, PDF, JPG). Android and iOS build but were not run yet; reports welcome.
 
 No setup and no account needed: the GitHub API answers unauthenticated requests, 60 per hour per address, enough for a demo. Optionally set a `GITHUB_TOKEN` environment variable for 5000 per hour.
 

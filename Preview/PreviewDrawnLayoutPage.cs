@@ -38,11 +38,12 @@ public class PreviewDrawnLayoutPage : BasePageReloadable
     }
 
     /// <summary>
-    /// Opens a page in a second window next to the main one. Windows and Mac Catalyst only.
+    /// Opens a page in a second window next to the main one. Windows only for now: on Mac Catalyst the
+    /// UIApplicationSceneManifest this needs leaves the main window empty with MAUI 10.0.80 and DrawnUI.
     /// </summary>
     public static void OpenPageInNewWindow(ContentPage page, string title, SKSize size)
     {
-#if WINDOWS || MACCATALYST
+#if WINDOWS
         var window = new Window(page)
         {
             Title = title,

@@ -99,7 +99,7 @@ public partial class MainPage : BasePageReloadable, IDisposable
                                     .OnTapped(async me => await ExportAsync(asImage: false)),
                                 ToolbarButton("Export JPG", Color.Parse("#30A46C"))
                                     .OnTapped(async me => await ExportAsync(asImage: true)),
-#if WINDOWS || MACCATALYST
+#if WINDOWS
                                 ToolbarButton("Preview window", Color.Parse("#5B6475"))
                                     .OnTapped(me => OpenPreview()),
 #endif
@@ -207,7 +207,7 @@ public partial class MainPage : BasePageReloadable, IDisposable
     }
 
     /// <summary>
-    /// Desktop only: the report at A4 width in a second window. Edit ReportView.xaml, save, watch it reload.
+    /// Windows only: the report at A4 width in a second window. Edit ReportView.xaml, save, watch it reload.
     /// </summary>
     void OpenPreview()
     {
