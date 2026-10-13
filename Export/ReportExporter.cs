@@ -99,6 +99,10 @@ public static class ReportExporter
                     canvas.Scale(72f / Dpi);
                     canvas.Clear(SKColors.White);
 
+                    // the page ends where the split said, not at the paper edge: the viewport is a full
+                    // paper tall, without the clip the top of the next row would show at the bottom
+                    canvas.ClipRect(SKRect.Create(0, 0, paper.Width, margins + page.Height));
+
                     var ctx = new SkiaDrawingContext { Canvas = canvas, Width = paper.Width, Height = paper.Height };
                     wrapper.Render(new DrawingContext(ctx, new SKRect(0, 0, paper.Width, paper.Height), scale));
                 }

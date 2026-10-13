@@ -188,9 +188,10 @@ public partial class MainPage : BasePageReloadable, IDisposable
 
             _status.Text = $"Saved {Path.GetFileName(file)} ({new FileInfo(file).Length / 1024} KB)";
 
-#if WINDOWS || MACCATALYST
+#if WINDOWS
             await Launcher.Default.OpenAsync(new OpenFileRequest("Report", new ReadOnlyFile(file)));
 #else
+            // Mac Catalyst too: Launcher.OpenAsync(OpenFileRequest) returns without opening anything there
             await Share.Default.RequestAsync(new ShareFileRequest("Report", new ShareFile(file)));
 #endif
         }

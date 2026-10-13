@@ -23,7 +23,7 @@ Mac Catalyst:
 dotnet build -f net10.0-maccatalyst
 ```
 
-Then run from the IDE or `dotnet run`. Type `owner/repo`, tap **Load**, then **Export PDF** or **Export JPG**. On Windows and Mac the file opens in the default viewer, on Android and iOS the share sheet appears.
+Then run from the IDE or `dotnet run`. Type `owner/repo`, tap **Load**, then **Export PDF** or **Export JPG**. On Windows the file opens in the default viewer, on Mac, Android and iOS the share sheet appears (`Launcher.OpenAsync` does nothing on Mac Catalyst).
 
 On Windows and Mac a **Preview window** button opens the report at A4 width in a second window: edit `ReportView.xaml`, save, and XAML hot reload shows the change next to the app. On Mac the second window needs `UIApplicationSupportsMultipleScenes` in `Platforms/MacCatalyst/Info.plist`, already set here.
 
