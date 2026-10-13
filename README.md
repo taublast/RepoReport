@@ -11,11 +11,23 @@ The report on screen and the report in the PDF are one `ReportView.xaml` with on
 
 ## Run
 
+Windows:
+
 ```
 dotnet build -f net10.0-windows10.0.19041.0
 ```
 
+Mac Catalyst:
+
+```
+dotnet build -f net10.0-maccatalyst
+```
+
 Then run from the IDE or `dotnet run`. Type `owner/repo`, tap **Load**, then **Export PDF** or **Export JPG**. On Windows and Mac the file opens in the default viewer, on Android and iOS the share sheet appears.
+
+On Windows and Mac a **Preview window** button opens the report at A4 width in a second window: edit `ReportView.xaml`, save, and XAML hot reload shows the change next to the app. On Mac the second window needs `UIApplicationSupportsMultipleScenes` in `Platforms/MacCatalyst/Info.plist`, already set here.
+
+Verified on Windows. Mac, Android and iOS build but were not run yet; reports welcome.
 
 No setup and no account needed: the GitHub API answers unauthenticated requests, 60 per hour per address, enough for a demo. Optionally set a `GITHUB_TOKEN` environment variable for 5000 per hour.
 
