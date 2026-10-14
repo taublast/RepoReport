@@ -219,8 +219,14 @@ public partial class MainPage : BasePageReloadable, IDisposable
     void ShowPreview(ReportView report)
     {
         var previous = _preview.Content;
-        report.WidthRequest = ReportExporter.PrintableWidth(PaperFormat.A4);
+        var width = ReportExporter.PrintableWidth(PaperFormat.A4);
+        report.WidthRequest = width;
         report.UseCache = SkiaCacheType.Image;
+
+        // narrow screens: the scroll renders its content at a reduced scale so the full page width fits
+        var viewportWidth = _preview.DrawingRect.Width / _preview.RenderingScale;
+        _preview.ViewportZoom = viewportWidth > 0 ? Math.Min(1.0, viewportWidth / width) : 1.0;
+
         _preview.Content = report;
         previous?.Dispose();
     }

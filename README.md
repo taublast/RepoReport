@@ -7,7 +7,7 @@ It asks the GitHub API for a repository (stars, forks, issues, languages, weekly
 - a multi-page A4 PDF, pages split between table rows (`Pdf.SplitStackToPages`)
 - one tall JPEG
 
-The exported report is then shown on screen: the same instance that went into the file, cached as one image, so there is one data load and one render. Nothing inside the template is cached, so text and shapes stay vectors inside the PDF.
+The exported report is then shown on screen: the same instance that went into the file, cached as one image and scaled down to fit a narrow screen, so there is one data load and one render. Nothing inside the template is cached, so text and shapes stay vectors inside the PDF.
 
 ## Run
 
