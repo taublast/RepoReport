@@ -190,8 +190,12 @@ public partial class MainPage : BasePageReloadable, IDisposable
 
 #if WINDOWS
             await Launcher.Default.OpenAsync(new OpenFileRequest("Report", new ReadOnlyFile(file)));
+#elif MACCATALYST
+            // Launcher.OpenAsync(OpenFileRequest) does nothing on Mac Catalyst and Share crashes in the
+            // completion callback (dotnet/macios binding), so offer a native save dialog instead
+            var picker = new UIKit.UIDocumentPickerViewController(new[] { Foundation.NSUrl.FromFilename(file) }, true);
+            Platform.GetCurrentUIViewController()?.PresentViewController(picker, true, null);
 #else
-            // Mac Catalyst too: Launcher.OpenAsync(OpenFileRequest) returns without opening anything there
             await Share.Default.RequestAsync(new ShareFileRequest("Report", new ShareFile(file)));
 #endif
         }
