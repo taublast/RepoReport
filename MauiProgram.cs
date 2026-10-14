@@ -15,12 +15,11 @@ public static class MauiProgram
                 // Listen to hardware keys on desktop (Windows / Mac Catalyst).
                 UseDesktopKeyboard = true,
 
-                // Desktop runs in a phone-sized window so the layout matches mobile.
-                // Drop this to get a normal resizable desktop window.
+                // Desktop window wide enough for the report at A4 width (1240 px at 150 dpi).
                 DesktopWindow = new()
                 {
-                    Width = 1000,
-                    Height = 820,
+                    Width = 1320,
+                    Height = 900,
                     //IsFixedSize = true
                 }
             })

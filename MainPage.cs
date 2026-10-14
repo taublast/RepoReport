@@ -119,16 +119,17 @@ public partial class MainPage : BasePageReloadable, IDisposable
                     }
                 },
 
-                // the live report: same XAML as the PDF, laid out at screen width
+                // the live report: same XAML as the PDF at the paper width, pans both ways on a phone
                 new SkiaScroll
                 {
+                    Orientation = ScrollOrientation.Both,
                     HorizontalOptions = LayoutOptions.Fill,
                     VerticalOptions = LayoutOptions.Fill,
                     Content = new ReportView
                     {
                         BindingContext = _model,
                         UseCache = SkiaCacheType.Image,
-                        HorizontalOptions = LayoutOptions.Fill,
+                        WidthRequest = ReportExporter.Dpi * Pdf.GetPaperSizeInInches(PaperFormat.A4).Width,
                     }
                 }
             }
@@ -193,8 +194,11 @@ public partial class MainPage : BasePageReloadable, IDisposable
 #elif MACCATALYST
             // Launcher.OpenAsync(OpenFileRequest) does nothing on Mac Catalyst and Share crashes in the
             // completion callback (dotnet/macios binding), so offer a native save dialog instead
-            var picker = new UIKit.UIDocumentPickerViewController(new[] { Foundation.NSUrl.FromFilename(file) }, true);
-            Platform.GetCurrentUIViewController()?.PresentViewController(picker, true, null);
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                var picker = new UIKit.UIDocumentPickerViewController(new[] { Foundation.NSUrl.FromFilename(file) }, true);
+                Platform.GetCurrentUIViewController()?.PresentViewController(picker, true, null);
+            });
 #else
             await Share.Default.RequestAsync(new ShareFileRequest("Report", new ShareFile(file)));
 #endif
