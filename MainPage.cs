@@ -15,6 +15,7 @@ public partial class MainPage : BasePageReloadable, IDisposable
     readonly ReportViewModel _model = new();
     Canvas _canvas;
     SkiaLabel _status;
+    SkiaScroll _preview;
     bool _busy;
 
     static readonly Color Bg = Color.Parse("#0B0E14");
@@ -119,19 +120,13 @@ public partial class MainPage : BasePageReloadable, IDisposable
                     }
                 },
 
-                // the live report: same XAML as the PDF at the paper width, pans both ways on a phone
+                // the exported report is shown here after an export, cached as one image; pans both ways on a phone
                 new SkiaScroll
                 {
                     Orientation = ScrollOrientation.Both,
                     HorizontalOptions = LayoutOptions.Fill,
                     VerticalOptions = LayoutOptions.Fill,
-                    Content = new ReportView
-                    {
-                        BindingContext = _model,
-                        UseCache = SkiaCacheType.Image,
-                        WidthRequest = ReportExporter.Dpi * Pdf.GetPaperSizeInInches(PaperFormat.A4).Width,
-                    }
-                }
+                }.Assign(out _preview)
             }
         };
     }
@@ -180,13 +175,17 @@ public partial class MainPage : BasePageReloadable, IDisposable
         _busy = true;
         try
         {
-            _status.Text = asImage ? "Rendering image..." : "Rendering PDF...";
+            _status.Text = "Rendering report...";
             var folder = Path.Combine(FileSystem.CacheDirectory, "Reports");
 
-            var file = asImage
-                ? await ReportExporter.ExportImageAsync(_model, PaperFormat.A4, folder)
-                : await ReportExporter.ExportPdfAsync(_model, PaperFormat.A4, folder);
+            // one instance: rendered into the file, then shown on screen with its images already loaded
+            var report = new ReportView { BindingContext = _model };
 
+            var file = asImage
+                ? await ReportExporter.ExportImageAsync(report, PaperFormat.A4, folder)
+                : await ReportExporter.ExportPdfAsync(report, PaperFormat.A4, folder);
+
+            ShowPreview(report);
             _status.Text = $"Saved {Path.GetFileName(file)} ({new FileInfo(file).Length / 1024} KB)";
 
 #if WINDOWS
@@ -212,6 +211,18 @@ public partial class MainPage : BasePageReloadable, IDisposable
         {
             _busy = false;
         }
+    }
+
+    /// <summary>
+    /// Shows the exported report on screen at the printed width, cached as one image so scrolling is a blit.
+    /// </summary>
+    void ShowPreview(ReportView report)
+    {
+        var previous = _preview.Content;
+        report.WidthRequest = ReportExporter.PrintableWidth(PaperFormat.A4);
+        report.UseCache = SkiaCacheType.Image;
+        _preview.Content = report;
+        previous?.Dispose();
     }
 
     /// <summary>

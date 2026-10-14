@@ -2,12 +2,12 @@
 
 A .NET MAUI sample that renders a DrawnUI XAML layout into a multi-page PDF.
 
-It asks the GitHub API for a repository (stars, forks, issues, languages, weekly commits, top contributors with avatars), shows the report on screen, and exports the same XAML as:
+It asks the GitHub API for a repository (stars, forks, issues, languages, weekly commits, top contributors with avatars) and exports a XAML report as:
 
 - a multi-page A4 PDF, pages split between table rows (`Pdf.SplitStackToPages`)
 - one tall JPEG
 
-The report on screen and the report in the PDF are one `ReportView.xaml` with one view model. Nothing in the template is cached, so text and shapes stay vectors inside the PDF.
+The exported report is then shown on screen: the same instance that went into the file, cached as one image, so there is one data load and one render. Nothing inside the template is cached, so text and shapes stay vectors inside the PDF.
 
 ## Run
 
@@ -23,7 +23,7 @@ Mac Catalyst:
 dotnet build -f net10.0-maccatalyst
 ```
 
-Then run from the IDE or `dotnet run`. Type `owner/repo`, tap **Load**, then **Export PDF** or **Export JPG**. On Windows the file opens in the default viewer, on Mac a save dialog appears (`Launcher.OpenAsync` does nothing on Mac Catalyst and `Share` crashes on completion there), on Android and iOS the share sheet appears.
+Then run from the IDE or `dotnet run`. Type `owner/repo`, tap **Load**, then **Export PDF** or **Export JPG**: the report is rendered into the file and appears on screen. On Windows the file opens in the default viewer, on Mac a save dialog appears (`Launcher.OpenAsync` does nothing on Mac Catalyst and `Share` crashes on completion there), on Android and iOS the share sheet appears.
 
 On Windows a **Preview window** button opens the report at A4 width in a second window: edit `ReportView.xaml`, save, and XAML hot reload shows the change next to the app. Not on Mac yet: the second window needs `UIApplicationSupportsMultipleScenes` in `Info.plist`, and with that manifest the app comes up with an empty main window on MAUI 10.0.80 (open question).
 

@@ -5,7 +5,8 @@ using RepoReport.ViewModels;
 namespace RepoReport.Export;
 
 /// <summary>
-/// Renders a fresh <see cref="ReportView"/> off-screen into a multi-page PDF or a single tall JPEG.
+/// Renders a <see cref="ReportView"/> off-screen into a multi-page PDF or a single tall JPEG.
+/// The caller creates the report and keeps it: once exported it can be shown on screen as the preview.
 /// </summary>
 public static class ReportExporter
 {
@@ -17,7 +18,15 @@ public static class ReportExporter
     /// <summary>
     /// Page margins in inches.
     /// </summary>
-    const float MarginInches = 0.3f;
+    public const float MarginInches = 0.3f;
+
+    /// <summary>
+    /// Width of the printed content in report units, the width the report is laid out at.
+    /// </summary>
+    public static float PrintableWidth(PaperFormat format)
+    {
+        return Pdf.GetPaperSizePixels(format, Dpi).Width - MarginInches * Dpi * 2;
+    }
 
     /// <summary>
     /// How long to wait for images before exporting whatever is there.
@@ -27,19 +36,14 @@ public static class ReportExporter
     /// <summary>
     /// Renders the report to a PDF file and returns its full path.
     /// </summary>
-    public static async Task<string> ExportPdfAsync(ReportViewModel data, PaperFormat format, string folder)
+    public static async Task<string> ExportPdfAsync(ReportView content, PaperFormat format, string folder)
     {
         var scale = 1f;
         var inches = Pdf.GetPaperSizeInInches(format);
         var paper = Pdf.GetPaperSizePixels(inches, Dpi);
         var margins = MarginInches * Dpi;
         var pageInner = new SKSize(paper.Width - margins * 2, paper.Height - margins * 2);
-
-        var content = new ReportView
-        {
-            BindingContext = data,
-            HorizontalOptions = LayoutOptions.Fill,
-        };
+        var data = content.BindingContext as ReportViewModel;
 
         // Pass 1: lay the whole report out at page width with unlimited height, let images load,
         // and record it off the PDF so the render tree knows where every table row sits.
@@ -82,8 +86,8 @@ public static class ReportExporter
             EncodingQuality = 85,
             Author = "RepoReport sample",
             Producer = "DrawnUI",
-            Subject = data.Title,
-            Title = $"{data.Title} report",
+            Subject = data?.Title,
+            Title = $"{data?.Title} report",
         }))
         {
             foreach (var page in pages)
@@ -112,23 +116,19 @@ public static class ReportExporter
         }
 
         await File.WriteAllBytesAsync(fullFilename, ms.ToArray());
+
+        // the report stays attached to the throwaway wrapper on purpose: detaching it (Content = null)
+        // clears its BindingContext by design. The caller re-parents it directly to show it on screen.
         return fullFilename;
     }
 
     /// <summary>
     /// Renders the whole report as one tall JPEG at page width and returns its full path.
     /// </summary>
-    public static async Task<string> ExportImageAsync(ReportViewModel data, PaperFormat format, string folder)
+    public static async Task<string> ExportImageAsync(ReportView content, PaperFormat format, string folder)
     {
         var scale = 1f;
-        var paper = Pdf.GetPaperSizePixels(format, Dpi);
-        var width = paper.Width - MarginInches * Dpi * 2;
-
-        var content = new ReportView
-        {
-            BindingContext = data,
-            HorizontalOptions = LayoutOptions.Fill,
-        };
+        var width = PrintableWidth(format);
 
         await WarmUpAsync(content, width, float.PositiveInfinity, scale);
 
