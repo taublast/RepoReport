@@ -9,6 +9,10 @@
         <SingleProject>true</SingleProject>
         <ImplicitUsings>enable</ImplicitUsings>
 
+        <!-- XAML as generated C#. The Debug default inflates XAML at runtime through reflection: on a phone
+             that costs about 150 ms per DataTemplate row, 100 contributor rows took 18 s to create. -->
+        <MauiXamlInflator>SourceGen</MauiXamlInflator>
+
         <RootNamespace>RepoReport</RootNamespace>
         <AssemblyName>RepoReport</AssemblyName>
         <ApplicationTitle>RepoReport</ApplicationTitle>

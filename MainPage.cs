@@ -16,6 +16,7 @@ public partial class MainPage : BasePageReloadable, IDisposable
     Canvas _canvas;
     SkiaLabel _status;
     SkiaScroll _preview;
+    SkiaShape _spinner;
     bool _busy;
 
     static readonly Color Bg = Color.Parse("#0B0E14");
@@ -126,7 +127,8 @@ public partial class MainPage : BasePageReloadable, IDisposable
                                     VerticalOptions = LayoutOptions.Center,
                                 }
                                 .AnimateRotation(0, 360, seconds: 1.0, repeat: -1)
-                                .ObserveProperty(_model, nameof(ReportViewModel.IsLoading), me => me.IsVisible = _model.IsLoading),
+                                .ObserveProperty(_model, nameof(ReportViewModel.IsLoading), me => me.IsVisible = _model.IsLoading || _busy)
+                                .Assign(out _spinner),
 
                                 new SkiaLabel(_model.Status)
                                 {
@@ -198,8 +200,10 @@ public partial class MainPage : BasePageReloadable, IDisposable
         }
 
         _busy = true;
+        _spinner.IsVisible = true;
         try
         {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
             _status.Text = "Rendering report...";
             var folder = Path.Combine(FileSystem.CacheDirectory, "Reports");
 
@@ -212,6 +216,7 @@ public partial class MainPage : BasePageReloadable, IDisposable
 
             ShowPreview(report);
             _status.Text = $"Saved {Path.GetFileName(file)} ({new FileInfo(file).Length / 1024} KB)";
+            Console.WriteLine($"[RepoReport] export total {clock.ElapsedMilliseconds} ms");
 
 #if WINDOWS
             await Launcher.Default.OpenAsync(new OpenFileRequest("Report", new ReadOnlyFile(file)));
@@ -235,6 +240,7 @@ public partial class MainPage : BasePageReloadable, IDisposable
         finally
         {
             _busy = false;
+            _spinner.IsVisible = _model.IsLoading;
         }
     }
 

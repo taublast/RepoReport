@@ -115,6 +115,7 @@ public class ReportViewModel : INotifyPropertyChanged
         IsLoading = true;
         HasData = false;
         Status = $"Loading {name}...";
+        var clock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             var repoTask = _github.GetRepoAsync(name, ct);
@@ -123,6 +124,7 @@ public class ReportViewModel : INotifyPropertyChanged
             var activityTask = _github.GetCommitActivityAsync(name, ct);
 
             Repo = await repoTask;
+            Console.WriteLine($"[RepoReport] repo {clock.ElapsedMilliseconds} ms");
 
             var contributors = await contributorsTask;
             var top = contributors.Count > 0 ? contributors[0].Contributions : 1;
@@ -136,7 +138,9 @@ public class ReportViewModel : INotifyPropertyChanged
                 Contributors.Add(c);
             }
 
+            Console.WriteLine($"[RepoReport] contributors {clock.ElapsedMilliseconds} ms");
             var languages = await languagesTask;
+            Console.WriteLine($"[RepoReport] languages {clock.ElapsedMilliseconds} ms");
             var total = Math.Max(1, languages.Sum(l => l.Bytes));
             foreach (var l in languages)
             {
@@ -146,6 +150,7 @@ public class ReportViewModel : INotifyPropertyChanged
             Languages = languages.OrderByDescending(l => l.Bytes).ToList();
 
             WeeklyCommits = await activityTask;
+            Console.WriteLine($"[RepoReport] commit activity {clock.ElapsedMilliseconds} ms (load total)");
 
             LoadedRepoName = name;
             HasData = true;

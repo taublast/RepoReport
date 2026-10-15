@@ -50,6 +50,7 @@ public static class ReportExporter
         await WarmUpAsync(content, pageInner.Width, float.PositiveInfinity, scale);
 
         var pages = Pdf.SplitStackToPages(content, isTemplated: true, pageInner, scale);
+        var pdfClock = System.Diagnostics.Stopwatch.StartNew();
 
         // Pass 2: the printable tree. Padding gives the margins, the scroll shows one page at a time.
         SkiaScroll viewport = null;
@@ -116,6 +117,7 @@ public static class ReportExporter
         }
 
         await File.WriteAllBytesAsync(fullFilename, ms.ToArray());
+        Console.WriteLine($"[RepoReport] pdf {pages.Count} pages rendered+written {pdfClock.ElapsedMilliseconds} ms");
 
         // the report stays attached to the throwaway wrapper on purpose: detaching it (Content = null)
         // clears its BindingContext by design. The caller re-parents it directly to show it on screen.
@@ -157,14 +159,20 @@ public static class ReportExporter
     /// </summary>
     static async Task WarmUpAsync(SkiaControl layout, float width, float height, float scale)
     {
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+
+
         layout.Measure(width, height, scale);
         layout.Arrange(new SKRect(0, 0, layout.MeasuredSize.Pixels.Width, layout.MeasuredSize.Pixels.Height),
             layout.MeasuredSize.Pixels.Width, layout.MeasuredSize.Pixels.Height, scale);
 
         var size = new SKSize(layout.MeasuredSize.Pixels.Width, layout.MeasuredSize.Pixels.Height);
 
+        Console.WriteLine($"[RepoReport] warm-up measure+arrange {clock.ElapsedMilliseconds} ms");
+
         // first rendering starts the async image loads
         RenderOnce(layout, size, scale);
+        Console.WriteLine($"[RepoReport] warm-up first render {clock.ElapsedMilliseconds} ms");
 
         var started = DateTime.UtcNow;
         if (layout is IContentReadyAware aware)
@@ -174,6 +182,7 @@ public static class ReportExporter
                 await Task.Delay(50);
             }
         }
+        Console.WriteLine($"[RepoReport] warm-up images loaded {clock.ElapsedMilliseconds} ms");
 
         // second rendering reflects loaded images, then settle while controls still invalidate
         RenderOnce(layout, size, scale);
@@ -183,6 +192,7 @@ public static class ReportExporter
             await Task.Delay(16);
             RenderOnce(layout, size, scale);
         }
+        Console.WriteLine($"[RepoReport] warm-up settled after {frames} extra frames {clock.ElapsedMilliseconds} ms");
 
         // size can change after images and remeasure: re-arrange to the final measured size
         layout.Arrange(new SKRect(0, 0, layout.MeasuredSize.Pixels.Width, layout.MeasuredSize.Pixels.Height),
