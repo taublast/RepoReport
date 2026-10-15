@@ -61,6 +61,16 @@ public class ReportViewModel : INotifyPropertyChanged
         private set { _hasData = value; OnPropertyChanged(); }
     }
 
+    /// <summary>
+    /// The repository the current data belongs to; null until a load succeeded.
+    /// </summary>
+    public string LoadedRepoName { get; private set; }
+
+    /// <summary>
+    /// True when the typed repository has not been loaded yet (nothing loaded, or the name changed since).
+    /// </summary>
+    public bool NeedsLoad => !HasData || !string.Equals(LoadedRepoName, RepoName?.Trim().Trim('/'), StringComparison.OrdinalIgnoreCase);
+
     string _status = "Enter owner/repo and tap Load";
     public string Status
     {
@@ -137,6 +147,7 @@ public class ReportViewModel : INotifyPropertyChanged
 
             WeeklyCommits = await activityTask;
 
+            LoadedRepoName = name;
             HasData = true;
             Status = $"{Repo.FullName}: {Contributors.Count} contributors, {Languages.Count} languages";
             RaiseAllFormatted();

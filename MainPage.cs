@@ -52,10 +52,9 @@ public partial class MainPage : BasePageReloadable, IDisposable
             Spacing = 0,
             Children =
             {
-                // toolbar: static chrome, cached as one image
+                // toolbar: buttons cache themselves; no cache on the whole bar, the spinner animates inside it
                 new SkiaStack
                 {
-                    UseCache = SkiaCacheType.Image,
                     Padding = new Thickness(16, 12),
                     Spacing = 10,
                     BackgroundColor = Color.Parse("#141925"),
@@ -107,16 +106,41 @@ public partial class MainPage : BasePageReloadable, IDisposable
                             }
                         },
 
-                        new SkiaLabel(_model.Status)
+                        new SkiaRow
                         {
-                            FontFamily = "FontText",
-                            FontSize = 12,
-                            TextColor = Color.Parse("#A9B4C6"),
-                            MaxLines = 2,
-                        }
-                        .WithAccessibilityText()
-                        .ObserveProperty(_model, nameof(ReportViewModel.Status), me => me.Text = _model.Status)
-                        .Assign(out _status),
+                            Spacing = 8,
+                            Children =
+                            {
+                                // spinning arc while the GitHub data loads
+                                new SkiaShape
+                                {
+                                    Type = ShapeType.Arc,
+                                    Value1 = 0,
+                                    Value2 = 270,
+                                    StrokeColor = Accent,
+                                    StrokeWidth = 2,
+                                    BackgroundColor = Colors.Transparent,
+                                    WidthRequest = 14,
+                                    HeightRequest = 14,
+                                    IsVisible = _model.IsLoading,
+                                    VerticalOptions = LayoutOptions.Center,
+                                }
+                                .AnimateRotation(0, 360, seconds: 1.0, repeat: -1)
+                                .ObserveProperty(_model, nameof(ReportViewModel.IsLoading), me => me.IsVisible = _model.IsLoading),
+
+                                new SkiaLabel(_model.Status)
+                                {
+                                    FontFamily = "FontText",
+                                    FontSize = 12,
+                                    TextColor = Color.Parse("#A9B4C6"),
+                                    MaxLines = 2,
+                                    VerticalOptions = LayoutOptions.Center,
+                                }
+                                .WithAccessibilityText()
+                                .ObserveProperty(_model, nameof(ReportViewModel.Status), me => me.Text = _model.Status)
+                                .Assign(out _status),
+                            }
+                        },
                     }
                 },
 
@@ -165,10 +189,11 @@ public partial class MainPage : BasePageReloadable, IDisposable
     {
         if (_busy)
             return;
-        if (!_model.HasData)
+        // the typed repository was not loaded yet, or changed since: load it first
+        if (_model.NeedsLoad)
         {
             await LoadAsync();
-            if (!_model.HasData)
+            if (_model.NeedsLoad)
                 return;
         }
 
