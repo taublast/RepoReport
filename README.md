@@ -1,10 +1,11 @@
 # RepoReport
 
-A .NET MAUI sample for the article [Design PDF in MAUI XAML with DrawnUI](https://taublast.github.io/posts/DrawnPdf/): a report designed as a [DrawnUI](https://drawnui.net/) layout in XAML, bound to a view model, printed to a multi-page A4 PDF with SkiaSharp.
+A .NET MAUI sample for the article [Design PDF in MAUI XAML with DrawnUI](https://taublast.github.io/posts/DrawnPdf/):  
+a report designed as a [DrawnUI](https://drawnui.net/) layout in XAML, bound to a view model, printed to a multi-page A4 PDF with SkiaSharp.  
+
+In short: we generate a PDF report inside a MAUI app, fetching its data in real-time for a remote API (GitHub) and filling a report UI defined in XAML via bindings.
 
 ![RepoReport on Mac Catalyst](screenshots/maccatalyst.jpg)
-
-We generate a PDF report inside a MAUI app, fetching its data in real-time for a remote API (GitHub) and filling a report UI defined in XAML via bindings.
 
 The app asks the GitHub API for a repository (stars, forks, issues, languages, weekly commits, the top 100 contributors with avatars) and renders `Reports/ReportView.xaml` into:
 
